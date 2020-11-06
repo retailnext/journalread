@@ -27,7 +27,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"syscall"
 	"time"
 
 	"github.com/coreos/go-systemd/v22/sdjournal"
@@ -174,9 +173,6 @@ func (r *Reader) Next(cancel canceler) (*sdjournal.JournalEntry, error) {
 		}
 
 		switch {
-		// error while reading next entry
-		case c < 0:
-			return nil, fmt.Errorf("error while reading next entry %+v", syscall.Errno(-c))
 		// no new entry, so wait
 		case c == 0:
 			hasNewEntry, err := r.checkForNewEvents()
