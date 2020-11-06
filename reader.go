@@ -32,8 +32,6 @@ import (
 
 	"github.com/coreos/go-systemd/v22/sdjournal"
 	"github.com/urso/sderr"
-
-	"github.com/elastic/beats/v7/libbeat/common/cleanup"
 )
 
 // Reader implements a Journald base reader with backoff support. The reader
@@ -95,7 +93,11 @@ func Open(log logger, path string, backoff backoff, with ...func(j *sdjournal.Jo
 	}
 
 	ok := false
-	defer cleanup.IfNot(&ok, func() { j.Close() })
+	defer func() {
+		if !ok {
+			_ = j.Close()
+		}
+	}()
 
 	for _, w := range with {
 		if err := w(j); err != nil {
