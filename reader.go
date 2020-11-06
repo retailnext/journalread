@@ -33,7 +33,6 @@ import (
 	"github.com/coreos/go-systemd/v22/sdjournal"
 	"github.com/urso/sderr"
 
-	"github.com/elastic/beats/v7/libbeat/common/backoff"
 	"github.com/elastic/beats/v7/libbeat/common/cleanup"
 )
 
@@ -41,7 +40,7 @@ import (
 // will block until a new entry can be read from the journal.
 type Reader struct {
 	log     logger
-	backoff backoff.Backoff
+	backoff backoff
 	journal journal
 }
 
@@ -52,6 +51,14 @@ type canceler interface {
 
 type logger interface {
 	Errorw(msg string, keysAndValues ...interface{})
+}
+
+type backoff interface {
+	// Wait blocks for a duration of time governed by the backoff strategy.
+	Wait() bool
+
+	// Reset resets the backoff duration to an initial value governed by the backoff strategy.
+	Reset()
 }
 
 type journal interface {
@@ -71,7 +78,7 @@ const localSystemJournalID = "LOCAL_SYSTEM_JOURNAL"
 
 // NewReader creates a new Reader for an already opened journal. The reader assumed to take
 // ownership of the journal, and needs to be closed.
-func NewReader(log logger, journal journal, backoff backoff.Backoff) *Reader {
+func NewReader(log logger, journal journal, backoff backoff) *Reader {
 	return &Reader{log: log, journal: journal, backoff: backoff}
 }
 
@@ -81,7 +88,7 @@ func NewReader(log logger, journal journal, backoff backoff.Backoff) *Reader {
 //
 // Open will opend the systems journal if the path is empty or matches LOCAL_SYSTEM_JOURNAL.
 // The path can optionally point to a file or a directory.
-func Open(log logger, path string, backoff backoff.Backoff, with ...func(j *sdjournal.Journal) error) (*Reader, error) {
+func Open(log logger, path string, backoff backoff, with ...func(j *sdjournal.Journal) error) (*Reader, error) {
 	j, err := openJournal(path)
 	if err != nil {
 		return nil, err
