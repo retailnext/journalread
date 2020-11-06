@@ -1,3 +1,7 @@
+// Copyright 2014-2020 Elasticsearch BV
+// Copyright 2020 RetailNext, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 // Licensed to Elasticsearch B.V. under one or more contributor
 // license agreements. See the NOTICE file distributed with
 // this work for additional information regarding copyright
@@ -18,7 +22,6 @@
 package journalread
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -41,8 +44,6 @@ var seekModes = map[string]SeekMode{
 	"tail":   SeekTail,
 	"cursor": SeekCursor,
 }
-
-var errInvalidSeekFallback = errors.New("invalid setting for cursor_seek_fallback")
 
 // Unpack validates and unpack "seek" config options. It returns an error if
 // the string is no valid seek mode.
