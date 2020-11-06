@@ -1,3 +1,7 @@
+// Copyright 2014-2020 Elasticsearch BV
+// Copyright 2020 RetailNext, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 // Licensed to Elasticsearch B.V. under one or more contributor
 // license agreements. See the NOTICE file distributed with
 // this work for additional information regarding copyright
@@ -31,13 +35,12 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/common/backoff"
 	"github.com/elastic/beats/v7/libbeat/common/cleanup"
-	"github.com/elastic/beats/v7/libbeat/logp"
 )
 
 // Reader implements a Journald base reader with backoff support. The reader
 // will block until a new entry can be read from the journal.
 type Reader struct {
-	log     *logp.Logger
+	log     logger
 	backoff backoff.Backoff
 	journal journal
 }
@@ -45,6 +48,10 @@ type Reader struct {
 type canceler interface {
 	Done() <-chan struct{}
 	Err() error
+}
+
+type logger interface {
+	Errorw(msg string, keysAndValues ...interface{})
 }
 
 type journal interface {
@@ -64,7 +71,7 @@ const localSystemJournalID = "LOCAL_SYSTEM_JOURNAL"
 
 // NewReader creates a new Reader for an already opened journal. The reader assumed to take
 // ownership of the journal, and needs to be closed.
-func NewReader(log *logp.Logger, journal journal, backoff backoff.Backoff) *Reader {
+func NewReader(log logger, journal journal, backoff backoff.Backoff) *Reader {
 	return &Reader{log: log, journal: journal, backoff: backoff}
 }
 
@@ -74,7 +81,7 @@ func NewReader(log *logp.Logger, journal journal, backoff backoff.Backoff) *Read
 //
 // Open will opend the systems journal if the path is empty or matches LOCAL_SYSTEM_JOURNAL.
 // The path can optionally point to a file or a directory.
-func Open(log *logp.Logger, path string, backoff backoff.Backoff, with ...func(j *sdjournal.Journal) error) (*Reader, error) {
+func Open(log logger, path string, backoff backoff.Backoff, with ...func(j *sdjournal.Journal) error) (*Reader, error) {
 	j, err := openJournal(path)
 	if err != nil {
 		return nil, err
@@ -198,6 +205,6 @@ func (r *Reader) checkForNewEvents() (bool, error) {
 	default:
 	}
 
-	r.log.Errorf("Unknown return code from Wait: %d\n", c)
+	r.log.Errorw("Unknown return code from Wait", "code", c)
 	return false, nil
 }
