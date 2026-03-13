@@ -172,9 +172,9 @@ func (r *Reader) Next(cancel canceler) (*sdjournal.JournalEntry, error) {
 			return nil, err
 		}
 
-		switch {
+		switch c {
 		// no new entry, so wait
-		case c == 0:
+		case 0:
 			hasNewEntry, err := r.checkForNewEvents()
 			if err != nil {
 				return nil, err
