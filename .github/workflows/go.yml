@@ -21,9 +21,9 @@ jobs:
       - name: Install libsystemd-dev
         run: sudo apt-get update && sudo apt-get install -y libsystemd-dev
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9
         with:
-          version: v1.64.8
+          version: v2.11.3
   build:
     name: Build
     runs-on: ubuntu-latest
